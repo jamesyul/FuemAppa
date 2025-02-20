@@ -1,4 +1,4 @@
-import React from 'react';
+/*import React from 'react';
 import logo from './logo.svg';
 import './App.css';
 
@@ -20,6 +20,26 @@ function App() {
         </a>
       </header>
     </div>
+  );
+}
+
+export default App;
+*/
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Home from './src/pages/Home';
+import Login from './src/pages/Login';
+import Pieces from './src/pages/Pieces';
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/pieces" element={<Pieces />} />
+      </Routes>
+    </Router>
   );
 }
 
