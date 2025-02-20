@@ -9,16 +9,15 @@ const Navbar: React.FC = () => {
     <nav className="bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          {/* Logo */}
+          {/* Logo (ahora como imagen) */}
           <div className="flex-shrink-0 flex items-center">
-            <Link to="/" className="text-2xl font-bold text-gray-900">
-              attio
+            <Link to="/">
+              <img src="/logo.png" alt="attio logo" className="h-8 w-auto" />
             </Link>
           </div>
 
-          {/* Enlaces y botones */}
+          {/* Enlaces y botones (el resto permanece igual) */}
           <div className="flex items-center space-x-4">
-            {/* Enlaces principales */}
             <Link to="/platform" className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
               Platform
             </Link>
@@ -71,7 +70,6 @@ const Navbar: React.FC = () => {
               Pricing
             </Link>
 
-            {/* Botones */}
             <Link
               to="/signin"
               className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
