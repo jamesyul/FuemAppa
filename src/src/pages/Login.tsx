@@ -14,7 +14,7 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuthStore();
 
-  const onSubmit = async (data: LoginFormData) => {
+  /*const onSubmit = async (data: LoginFormData) => {
     try {
       const response = await axios.post('/auth/login', data); // Endpoint del backend
       const { token, user } = response.data;
@@ -24,6 +24,17 @@ const Login: React.FC = () => {
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
       alert('Credenciales incorrectas o error en el servidor');
+    }
+  };*/
+
+  const onSubmit = (data: LoginFormData) => {
+    // Simulación local para pruebas (borra esto en producción)
+    if (data.email === 'yul@outlook' && data.password === '12345') {
+      login({ id: '1', name: 'yul', role: 'admin' });
+      navigate('/');
+      alert('Inicio de sesión exitoso como administrador');
+    } else {
+      alert('Credenciales incorrectas. Usa "yul" y "12345" para pruebas.');
     }
   };
 

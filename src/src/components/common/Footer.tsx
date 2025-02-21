@@ -1,6 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaLinkedin, FaTwitter, FaInstagram } from 'react-icons/fa';
+import { FaLinkedin, FaTwitter, FaInstagram } from 'react-icons/fa'; // Importación correcta
+
+// Declaración de tipos para react-icons (opcional, pero útil para evitar errores)
+declare module 'react-icons/fa' {
+  export const FaLinkedin: React.FC<React.SVGProps<SVGSVGElement>>;
+  export const FaTwitter: React.FC<React.SVGProps<SVGSVGElement>>;
+  export const FaInstagram: React.FC<React.SVGProps<SVGSVGElement>>;
+}
 
 const Footer: React.FC = () => {
   return (
@@ -94,9 +101,15 @@ const Footer: React.FC = () => {
             <Link to="/privacy" className="hover:text-white">Privacy Policy</Link>
           </div>
           <div className="flex space-x-4">
-            <a href="https://linkedin.com" className="text-gray-400 hover:text-white"><FaLinkedin size={20} /></a>
-            <a href="https://twitter.com" className="text-gray-400 hover:text-white"><FaTwitter size={20} /></a>
-            <a href="https://instagram.com" className="text-gray-400 hover:text-white"><FaInstagram size={20} /></a>
+            <a href="https://linkedin.com" className="text-gray-400 hover:text-white">
+              {React.createElement(FaLinkedin, { size: 20 })}
+            </a>
+            <a href="https://twitter.com" className="text-gray-400 hover:text-white">
+              {React.createElement(FaTwitter, { size: 20 })}
+            </a>
+            <a href="https://instagram.com" className="text-gray-400 hover:text-white">
+              {React.createElement(FaInstagram, { size: 20 })}
+            </a>
           </div>
         </div>
       </div>
