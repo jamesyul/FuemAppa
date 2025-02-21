@@ -14,13 +14,13 @@ const Home: React.FC = () => {
         </p>
         <div className="space-x-4">
           <Link
-            to="/signup"
+            to="/login"
             className="bg-black text-white px-6 py-3 rounded-md text-lg font-medium hover:bg-gray-800"
           >
            Log in
           </Link>
           <Link
-            to="/contact"
+            to="/signup"
             className="border border-gray-300 text-gray-900 px-6 py-3 rounded-md text-lg font-medium hover:bg-gray-100"
           >
             Sign in

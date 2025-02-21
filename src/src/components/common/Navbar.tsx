@@ -17,14 +17,15 @@ const Navbar: React.FC = () => {
     <nav className="bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          {/* Logo */}
-          <div className="flex-shrink-0 flex items-center">
+          {/* Logo y texto FUEM */}
+          <div className="flex-shrink-0 flex items-center space-x-2">
             <Link to="/">
-              <img src="/logo.png" alt="Proyecto Piezas Logo" className="h-8 w-auto" />
+              <img src="/logo.png" alt="FUEM Logo" className="h-8 w-auto" />
             </Link>
+            <span className="text-gray-900 text-xl font-bold">FUEM</span>
           </div>
 
-          {/* Enlaces y botones */}
+          {/* Enlaces y botones (mismo código que antes) */}
           <div className="flex items-center space-x-4">
             {user ? (
               <>
