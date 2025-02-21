@@ -3,22 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
 import { usePiecesStore } from '../store/pieces.store';
 import { Piece } from '../types/piece.types';
-import { FaEdit, FaTrash, FaEllipsisV } from 'react-icons/fa'; // Añadimos FaEllipsisV para los tres puntos
-import { Dialog, Transition } from '@headlessui/react'; // Para emergentes (instala @headlessui/react)
+import { FaEdit, FaTrash, FaEllipsisV } from 'react-icons/fa';
+import { Dialog, Transition, Menu } from '@headlessui/react';
 import { Fragment } from 'react';
 
-const Pieces: React.FC = () => {
+export default function Pieces() {
   const { user } = useAuthStore();
   const { pieces, filteredPieces, fetchPieces, setFilter, setDepartmentFilter } = usePiecesStore();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [selectedPiece, setSelectedPiece] = useState<Piece | null>(null); // Para el informe emergente
-  const [isReportOpen, setIsReportOpen] = useState(false); // Estado para emergente de informe
-  const [isCreateOpen, setIsCreateOpen] = useState(false); // Estado para emergente de crear pieza
+  const [selectedPiece, setSelectedPiece] = useState<Piece | null>(null);
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newPiece, setNewPiece] = useState<Piece>({
     id: '', code: '', name: '', departmentId: user?.departmentId || '', quantity: 0, price: 0, report: '',
   });
-  const [imageFile, setImageFile] = useState<File | null>(null); // Para la imagen de la pieza
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -59,7 +59,7 @@ const Pieces: React.FC = () => {
     }
     // Actualiza el store (simulado)
     const updatedPieces = [...pieces, newPieceData];
-    set({ pieces: updatedPieces, filteredPieces: updatedPieces });
+    usePiecesStore.setState({ pieces: updatedPieces, filteredPieces: updatedPieces });
     setNewPiece({ id: '', code: '', name: '', departmentId: user?.departmentId || '', quantity: 0, price: 0, report: '' });
     setImageFile(null);
     setIsCreateOpen(false);
@@ -132,7 +132,10 @@ const Pieces: React.FC = () => {
                   <td className="py-3 px-4 text-sm text-gray-700">${piece.price.toLocaleString()}</td>
                   <td className="py-3 px-4 text-sm text-gray-700">
                     <button
-                      onClick={() => setSelectedPiece(piece)}
+                      onClick={() => {
+                        setSelectedPiece(piece);
+                        setIsReportOpen(true);
+                      }}
                       className="text-indigo-600 hover:text-indigo-800"
                     >
                       Ver informe
@@ -140,17 +143,58 @@ const Pieces: React.FC = () => {
                   </td>
                   {canEditDelete && (
                     <td className="relative py-3 px-4">
-                      <button
-                        className="text-gray-500 hover:text-gray-700"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          // Lógica para mostrar el combobox (simulada con estado)
-                          // Implementaremos un estado para este propósito más adelante
-                        }}
-                      >
-                        <FaEllipsisV />
-                      </button>
-                      {/* Combobox emergente (simulado, ajustaremos en el siguiente paso) */}
+                      <Menu as="div" className="relative inline-block text-left">
+                        <div>
+                          <Menu.Button className="text-gray-500 hover:text-gray-700 focus:outline-none">
+                            <FaEllipsisV />
+                          </Menu.Button>
+                        </div>
+                        <Transition
+                          as={Fragment}
+                          enter="transition ease-out duration-100"
+                          enterFrom="transform opacity-0 scale-95"
+                          enterTo="transform opacity-100 scale-100"
+                          leave="transition ease-in duration-75"
+                          leaveFrom="transform opacity-100 scale-100"
+                          leaveTo="transform opacity-0 scale-95"
+                        >
+                          <Menu.Items
+                            className="absolute right-2 mt-1 w-32 origin-top-right rounded-md bg-white border border-gray-200 focus:outline-none z-50"
+                          >
+                            <div className="py-1">
+                              <Menu.Item>
+                                {({ active }) => (
+                                  <button
+                                    onClick={() => navigate(`/pieces/edit/${piece.id}`)}
+                                    className={`${
+                                      active ? 'bg-gray-100' : ''
+                                    } group flex w-full items-center px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900`}
+                                  >
+                                    Editar
+                                  </button>
+                                )}
+                              </Menu.Item>
+                              <Menu.Item>
+                                {({ active }) => (
+                                  <button
+                                    onClick={() => {
+                                      if (window.confirm('¿Estás seguro de eliminar esta pieza?')) {
+                                        // Lógica para eliminar (simulada aquí, usa axios al backend)
+                                        alert(`Eliminar pieza ${piece.code}`);
+                                      }
+                                    }}
+                                    className={`${
+                                      active ? 'bg-gray-100' : ''
+                                    } group flex w-full items-center px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900`}
+                                  >
+                                    Eliminar
+                                  </button>
+                                )}
+                              </Menu.Item>
+                            </div>
+                          </Menu.Items>
+                        </Transition>
+                      </Menu>
                     </td>
                   )}
                 </tr>
@@ -382,9 +426,4 @@ const Pieces: React.FC = () => {
       </Transition>
     </div>
   );
-};
-
-export default Pieces;
-
-// Asegúrate de usar set en el store correctamente (ajusta según tu implementación)
-const set = usePiecesStore.setState;
+}
