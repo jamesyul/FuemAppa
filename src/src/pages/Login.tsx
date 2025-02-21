@@ -14,14 +14,21 @@ const Login: React.FC = () => {
   const { login } = useAuthStore();
   const [errorMessage, setErrorMessage] = useState<string | null>(null); // Estado para el mensaje de error
 
-  const onSubmit = async (data: LoginFormData) => {
-    // Simulación local para pruebas (borra esto en producción)
-    if (data.email === 'yul' && data.password === '12345') {
-      login({ id: '1', name: 'yul', role: 'admin' });
+  const onSubmit = (data: LoginFormData) => {
+    if (data.email === 'admin' && data.password === '12345') {
+      login({ id: '1', name: 'Admin', role: 'admin' });
       navigate('/');
-      setErrorMessage(null); // Limpia el mensaje de error si las credenciales son correctas
+      setErrorMessage(null);
+    } else if (data.email === 'jefe' && data.password === '12345') {
+      login({ id: '2', name: 'Jefe Mecánica', role: 'jefe_departamento', departmentId: 'd1' }); // Ejemplo: departamento de mecánica
+      navigate('/');
+      setErrorMessage(null);
+    } else if (data.email === 'integrante' && data.password === '12345') {
+      login({ id: '3', name: 'Integrante Mecánica', role: 'integrante_departamento', departmentId: 'd1' });
+      navigate('/');
+      setErrorMessage(null);
     } else {
-      setErrorMessage('Usuario o contraseña incorrectos'); // Muestra mensaje de error
+      setErrorMessage('Usuario o contraseña incorrectos');
     }
   };
 
