@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react'; // Añadimos useState
 import { useForm } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
-import axios from 'axios';
 
 interface LoginFormData {
   email: string;
@@ -13,28 +12,16 @@ const Login: React.FC = () => {
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>();
   const navigate = useNavigate();
   const { login } = useAuthStore();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null); // Estado para el mensaje de error
 
-  /*const onSubmit = async (data: LoginFormData) => {
-    try {
-      const response = await axios.post('/auth/login', data); // Endpoint del backend
-      const { token, user } = response.data;
-      localStorage.setItem('token', token); // Guardar token para autenticación
-      login(user); // Guardar usuario en Zustand
-      navigate('/'); // Redirigir a la página principal
-    } catch (error) {
-      console.error('Error al iniciar sesión:', error);
-      alert('Credenciales incorrectas o error en el servidor');
-    }
-  };*/
-
-  const onSubmit = (data: LoginFormData) => {
+  const onSubmit = async (data: LoginFormData) => {
     // Simulación local para pruebas (borra esto en producción)
-    if (data.email === 'yul@outlook' && data.password === '12345') {
+    if (data.email === 'yul' && data.password === '12345') {
       login({ id: '1', name: 'yul', role: 'admin' });
       navigate('/');
-      alert('Inicio de sesión exitoso como administrador');
+      setErrorMessage(null); // Limpia el mensaje de error si las credenciales son correctas
     } else {
-      alert('Credenciales incorrectas. Usa "yul" y "12345" para pruebas.');
+      setErrorMessage('Usuario o contraseña incorrectos'); // Muestra mensaje de error
     }
   };
 
@@ -45,12 +32,12 @@ const Login: React.FC = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Correo Electrónico
+              Usuario
             </label>
             <input
-              type="email"
+              type="text"
               id="email"
-              {...register('email', { required: 'El correo es requerido', pattern: { value: /^\S+@\S+$/i, message: 'Correo inválido' } })}
+              {...register('email', { required: 'El usuario es requerido' })}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             />
             {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
@@ -73,6 +60,9 @@ const Login: React.FC = () => {
           >
             Iniciar Sesión
           </button>
+          {errorMessage && (
+            <p className="text-red-500 text-sm mt-2 text-center">{errorMessage}</p> // Mensaje de error en rojo debajo del formulario
+          )}
         </form>
         <p className="mt-4 text-center text-sm text-gray-600">
           ¿No tienes cuenta?{' '}
@@ -86,3 +76,19 @@ const Login: React.FC = () => {
 };
 
 export default Login;
+
+
+
+
+  /*const onSubmit = async (data: LoginFormData) => {
+    try {
+      const response = await axios.post('/auth/login', data); // Endpoint del backend
+      const { token, user } = response.data;
+      localStorage.setItem('token', token); // Guardar token para autenticación
+      login(user); // Guardar usuario en Zustand
+      navigate('/'); // Redirigir a la página principal
+    } catch (error) {
+      console.error('Error al iniciar sesión:', error);
+      alert('Credenciales incorrectas o error en el servidor');
+    }
+  };*/
