@@ -7,7 +7,9 @@ import { FaEdit, FaTrash, FaEllipsisV } from 'react-icons/fa';
 import { Dialog, Transition, Menu } from '@headlessui/react';
 import { Fragment } from 'react';
 
-export default function Pieces() {
+// Asegúrate de que Piece tenga departmentName opcional
+
+const Pieces: React.FC = () => {
   const { user } = useAuthStore();
   const { pieces, filteredPieces, fetchPieces, setFilter, setDepartmentFilter } = usePiecesStore();
   const navigate = useNavigate();
@@ -160,6 +162,7 @@ export default function Pieces() {
                         >
                           <Menu.Items
                             className="absolute right-2 mt-1 w-32 origin-top-right rounded-md bg-white border border-gray-200 focus:outline-none z-50"
+                            style={{ position: 'absolute', top: '100%', right: '0.5rem' }}
                           >
                             <div className="py-1">
                               <Menu.Item>
@@ -426,4 +429,8 @@ export default function Pieces() {
       </Transition>
     </div>
   );
-}
+};
+
+export default Pieces;
+// Asegúrate de importar usePiecesStore correctamente
+const set = usePiecesStore.setState;
