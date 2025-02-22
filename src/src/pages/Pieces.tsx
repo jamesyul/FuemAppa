@@ -7,7 +7,6 @@ import { FaEdit, FaTrash, FaEllipsisV } from 'react-icons/fa';
 import { Dialog, Transition, Menu } from '@headlessui/react';
 import { Fragment } from 'react';
 
-// Asegúrate de que Piece tenga departmentName opcional
 
 const Pieces: React.FC = () => {
   const { user } = useAuthStore();
@@ -17,10 +16,21 @@ const Pieces: React.FC = () => {
   const [selectedPiece, setSelectedPiece] = useState<Piece | null>(null);
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [newPiece, setNewPiece] = useState<Piece>({
-    id: '', code: '', name: '', departmentId: user?.departmentId || '', quantity: 0, price: 0, report: '',
+  const [isEditOpen, setIsEditOpen] = useState(false); // Nuevo estado para el emergente de edición
+  const [editPiece, setEditPiece] = useState<Piece>({
+    id: '', code: '', name: '', departmentId: '', quantity: 0, price: 0, report: '',
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [newPiece, setNewPiece] = useState<Piece>({
+    id: '',
+    code: '',
+    name: '',
+    departmentId: '',
+    quantity: 0,
+    price: 0,
+    report: '',
+    departmentName: ''
+  });
 
   useEffect(() => {
     if (!user) {
@@ -65,6 +75,17 @@ const Pieces: React.FC = () => {
     setNewPiece({ id: '', code: '', name: '', departmentId: user?.departmentId || '', quantity: 0, price: 0, report: '' });
     setImageFile(null);
     setIsCreateOpen(false);
+  };
+
+  const handleEditPiece = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editPiece.code || !editPiece.name || !editPiece.departmentId || !editPiece.quantity || !editPiece.price || !editPiece.report) return;
+
+    // Simulación de edición (reemplaza con axios al backend)
+    const updatedPieces = pieces.map(p => p.id === editPiece.id ? editPiece : p);
+    usePiecesStore.setState({ pieces: updatedPieces, filteredPieces: updatedPieces });
+    setEditPiece({ id: '', code: '', name: '', departmentId: '', quantity: 0, price: 0, report: '' });
+    setIsEditOpen(false);
   };
 
   if (!user) return null;
@@ -168,7 +189,10 @@ const Pieces: React.FC = () => {
                               <Menu.Item>
                                 {({ active }) => (
                                   <button
-                                    onClick={() => navigate(`/pieces/edit/${piece.id}`)}
+                                    onClick={() => {
+                                      setEditPiece(piece); // Establece la pieza para editar
+                                      setIsEditOpen(true); // Abre el emergente de edición
+                                    }}
                                     className={`${
                                       active ? 'bg-gray-100' : ''
                                     } group flex w-full items-center px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900`}
@@ -427,10 +451,166 @@ const Pieces: React.FC = () => {
           </div>
         </Dialog>
       </Transition>
+
+      {/* Emergente para editar pieza */}
+      <Transition appear show={isEditOpen} as={Fragment}>
+        <Dialog
+          as="div"
+          className="relative z-10"
+          onClose={() => setIsEditOpen(false)}
+        >
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" onClick={() => setIsEditOpen(false)} />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg font-medium leading-6 text-gray-900"
+                  >
+                    Editar Pieza
+                  </Dialog.Title>
+                  <form onSubmit={handleEditPiece} className="mt-2 space-y-4">
+                    <div>
+                      <label htmlFor="editCode" className="block text-sm font-medium text-gray-700">
+                        Código
+                      </label>
+                      <input
+                        type="text"
+                        id="editCode"
+                        value={editPiece.code}
+                        onChange={(e) => setEditPiece({ ...editPiece, code: e.target.value })}
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="editName" className="block text-sm font-medium text-gray-700">
+                        Nombre de Pieza
+                      </label>
+                      <input
+                        type="text"
+                        id="editName"
+                        value={editPiece.name}
+                        onChange={(e) => setEditPiece({ ...editPiece, name: e.target.value })}
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="editDepartmentId" className="block text-sm font-medium text-gray-700">
+                        Departamento
+                      </label>
+                      <select
+                        id="editDepartmentId"
+                        value={editPiece.departmentId}
+                        onChange={(e) => setEditPiece({ ...editPiece, departmentId: e.target.value })}
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        required
+                      >
+                        <option value="">Selecciona un departamento</option>
+                        <option value="d1">Mecánica</option>
+                        <option value="d2">Electrónica</option>
+                        <option value="d3">Aerodinámica</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="editQuantity" className="block text-sm font-medium text-gray-700">
+                        Cantidad
+                      </label>
+                      <input
+                        type="number"
+                        id="editQuantity"
+                        value={editPiece.quantity}
+                        onChange={(e) => setEditPiece({ ...editPiece, quantity: Number(e.target.value) })}
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="editPrice" className="block text-sm font-medium text-gray-700">
+                        Precio
+                      </label>
+                      <input
+                        type="number"
+                        id="editPrice"
+                        value={editPiece.price}
+                        onChange={(e) => setEditPiece({ ...editPiece, price: Number(e.target.value) })}
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="editReport" className="block text-sm font-medium text-gray-700">
+                        Informe (URL o texto)
+                      </label>
+                      <input
+                        type="text"
+                        id="editReport"
+                        value={editPiece.report}
+                        onChange={(e) => setEditPiece({ ...editPiece, report: e.target.value })}
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="editImage" className="block text-sm font-medium text-gray-700">
+                        Imagen de la Pieza (opcional)
+                      </label>
+                      <input
+                        type="file"
+                        id="editImage"
+                        onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                        accept="image/*"
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      />
+                    </div>
+                    <div className="mt-4">
+                      <button
+                        type="submit"
+                        className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+                      >
+                        Guardar
+                      </button>
+                      <button
+                        type="button"
+                        className="ml-2 inline-flex justify-center rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+                        onClick={() => setIsEditOpen(false)}
+                      >
+                        Cerrar
+                      </button>
+                    </div>
+                  </form>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
     </div>
   );
 };
 
 export default Pieces;
+
 // Asegúrate de importar usePiecesStore correctamente
 const set = usePiecesStore.setState;
