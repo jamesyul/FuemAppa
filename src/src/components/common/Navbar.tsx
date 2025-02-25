@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+// src/components/common/Navbar.tsx
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../store/auth.store'; // Ajusta la ruta según tu estructura
+import { useAuthStore } from '../../store/auth.store';
+import SearchBar from './SearchBar'; // Importa SearchBar
 
 const Navbar: React.FC = () => {
   const [isResourcesOpen, setIsResourcesOpen] = useState(false);
   const [isInsightsOpen, setIsInsightsOpen] = useState(false);
-  const { user, logout } = useAuthStore(); // Suponiendo que auth.store.ts tiene user y logout
+  const { user, logout } = useAuthStore();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -13,8 +15,13 @@ const Navbar: React.FC = () => {
     navigate('/login');
   };
 
+  // Simulación temporal de un usuario admin para pruebas (borra esto en producción)
+  useEffect(() => {
+    // login({ id: '1', name: 'yul', role: 'admin' });
+  }, []);
+
   return (
-    <nav className="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
+    <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo y texto FUEM */}
@@ -25,7 +32,7 @@ const Navbar: React.FC = () => {
             <span className="text-gray-900 text-xl font-bold">FUEM</span>
           </div>
 
-          {/* Enlaces y botones (mismo código que antes) */}
+          {/* Enlaces y botones */}
           <div className="flex items-center space-x-4">
             {user ? (
               <>
@@ -37,6 +44,7 @@ const Navbar: React.FC = () => {
                     Departamentos
                   </Link>
                 )}
+                <SearchBar /> {/* Añade el ícono de búsqueda aquí */}
                 <button
                   onClick={handleLogout}
                   className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
