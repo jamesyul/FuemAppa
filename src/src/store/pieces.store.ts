@@ -15,7 +15,7 @@ interface PiecesState {
   pieces: Piece[];
   filteredPieces: Piece[];
   fetchPieces: () => void;
-  setFilter: (term: string) => void;
+  setFilter: (term: string | { code?: string }) => void; // Actualizamos el tipo para aceptar string o { code: string }
   setDepartmentFilter: (departmentId: string) => void;
 }
 
@@ -214,11 +214,13 @@ export const usePiecesStore = create<PiecesState>((set) => ({
   filteredPieces: [],
   fetchPieces: () => set((state) => ({ pieces: state.pieces, filteredPieces: state.pieces })),
   setFilter: (term) => set((state) => ({
-    filteredPieces: state.pieces.filter(piece =>
-      piece.code.toLowerCase().includes(term.toLowerCase()) ||
-      piece.name.toLowerCase().includes(term.toLowerCase()) ||
-      (piece.departmentName || '').toLowerCase().includes(term.toLowerCase())
-    ),
+    filteredPieces: typeof term === 'string'
+      ? state.pieces.filter(piece =>
+          piece.code.toLowerCase().includes(term.toLowerCase()) ||
+          piece.name.toLowerCase().includes(term.toLowerCase()) ||
+          (piece.departmentName || '').toLowerCase().includes(term.toLowerCase())
+        )
+      : state.pieces.filter(piece => term.code && piece.code === term.code), // Filtra por código si es un objeto
   })),
   setDepartmentFilter: (departmentId) => set((state) => ({
     filteredPieces: state.pieces.filter(piece => piece.departmentId === departmentId),

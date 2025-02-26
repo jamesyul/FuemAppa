@@ -20,6 +20,14 @@ const Login: React.FC = () => {
       login({ id: '1', name: 'yul', role: 'admin' });
       navigate('/');
       setErrorMessage(null);
+    } else if (data.email === 'jefe' && data.password === '12345') {
+      login({ id: '2', name: 'Jefe Dept', role: 'jefe_departamento', departmentId: 'd1' }); // Rol jefe_departamento
+      navigate('/');
+      setErrorMessage(null);
+    } else if (data.email === 'integrante' && data.password === '12345') {
+      login({ id: '3', name: 'Integrante', role: 'integrante_departamento', departmentId: 'd1' }); // Rol integrante_departamento
+      navigate('/');
+      setErrorMessage(null);
     } else {
       setErrorMessage('Usuario o contraseña incorrectos');
     }
@@ -28,7 +36,7 @@ const Login: React.FC = () => {
   // Simulación de login con Google para pruebas locales
   const handleGoogleLogin = () => {
     // Simula un usuario autenticado con Google (borra esto en producción)
-    login({ id: '2', name: 'Usuario Google', role: 'user', departmentId: 'd1' }); // Ejemplo de rol usuario estándar
+    login({ id: '2', name: 'Usuario Google', role: 'integrante_departamento', departmentId: 'd1' }); // Cambiado a un rol válido
     navigate('/');
     alert('Inicio de sesión con Google simulado exitoso');
   };

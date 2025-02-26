@@ -9,7 +9,7 @@ import { Fragment } from 'react';
 const Departments: React.FC = () => {
   const [newDepartment, setNewDepartment] = useState<Department>({ id: '', name: '', description: '' });
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { user, login } = useAuthStore(); // Añadimos login para simular (opcional, para pruebas)
+  const { user } = useAuthStore(); // Eliminamos login, solo necesitamos user para verificar roles
   const { departments, fetchDepartments, createDepartment, updateDepartment, deleteDepartment } = useDepartmentsStore();
   const navigate = useNavigate();
 
@@ -39,6 +39,7 @@ const Departments: React.FC = () => {
     }
   };
 
+  // Verificación de roles antes de renderizar
   if (!user || user.role !== 'admin') {
     return null;
   }

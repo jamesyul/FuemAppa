@@ -17,19 +17,27 @@ const Signup: React.FC = () => {
 
   const onSubmit = (data: SignupFormData) => {
     // Simulación local para registro con email/password (borra esto en producción)
-    if (data.email === 'nuevo' && data.password === '12345') {
-      login({ id: '3', name: data.name, role: 'user', departmentId: 'd1' });
+    if (data.email === 'admin' && data.password === '12345') {
+      login({ id: '1', name: data.name, role: 'admin' });
+      navigate('/');
+      setErrorMessage(null);
+    } else if (data.email === 'jefe' && data.password === '12345') {
+      login({ id: '2', name: data.name, role: 'jefe_departamento', departmentId: 'd1' });
+      navigate('/');
+      setErrorMessage(null);
+    } else if (data.email === 'integrante' && data.password === '12345') {
+      login({ id: '3', name: data.name, role: 'integrante_departamento', departmentId: 'd1' });
       navigate('/');
       setErrorMessage(null);
     } else {
-      setErrorMessage('Error al registrar. Usa "nuevo" como email y "12345" como contraseña para pruebas.');
+      setErrorMessage('Error al registrar. Usa "admin", "jefe", o "integrante" como email y "12345" como contraseña para pruebas.');
     }
   };
 
   // Simulación de registro con Google para pruebas locales
   const handleGoogleSignup = () => {
     // Simula un usuario registrado con Google (borra esto en producción)
-    login({ id: '4', name: 'Nuevo Google', role: 'user', departmentId: 'd1' });
+    login({ id: '4', name: 'Nuevo Google', role: 'integrante_departamento', departmentId: 'd1' }); // Asignamos rol integrante por defecto para Google
     navigate('/');
     alert('Registro con Google simulado exitoso');
   };

@@ -16,9 +16,9 @@ const Navbar: React.FC = () => {
   };
 
   // Simulación temporal de un usuario admin para pruebas (borra esto en producción)
-  useEffect(() => {
+  //useEffect(() => {
     // login({ id: '1', name: 'yul', role: 'admin' });
-  }, []);
+  //}, []);
 
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-md">
@@ -36,15 +36,19 @@ const Navbar: React.FC = () => {
           <div className="flex items-center space-x-4">
             {user ? (
               <>
+                {/* "Piezas" visible para todos los usuarios autenticados */}
                 <Link to="/pieces" className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
                   Piezas
                 </Link>
+                {/* "Departamentos" solo para admin */}
                 {user.role === 'admin' && (
                   <Link to="/departments" className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
                     Departamentos
                   </Link>
                 )}
-                <SearchBar /> {/* Añade el ícono de búsqueda aquí */}
+                {/* Buscador accesible para todos los usuarios autenticados */}
+                <SearchBar />
+                {/* Botón de "Cerrar Sesión" para todos los usuarios autenticados */}
                 <button
                   onClick={handleLogout}
                   className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"

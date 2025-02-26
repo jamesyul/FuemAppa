@@ -7,7 +7,6 @@ import { FaEdit, FaTrash, FaEllipsisV } from 'react-icons/fa';
 import { Dialog, Transition, Menu } from '@headlessui/react';
 import { Fragment } from 'react';
 
-
 const Pieces: React.FC = () => {
   const { user } = useAuthStore();
   const { pieces, filteredPieces, fetchPieces, setFilter, setDepartmentFilter } = usePiecesStore();
@@ -46,6 +45,13 @@ const Pieces: React.FC = () => {
       } else {
         console.error('El usuario no tiene un departamento asignado');
       }
+    }
+
+    // Verificar si hay un filtro aplicado desde SearchBar (por ejemplo, desde la URL o store)
+    const searchParams = new URLSearchParams(window.location.search);
+    const filterCode = searchParams.get('code');
+    if (filterCode) {
+      setFilter({ code: filterCode }); // Aplica el filtro por código si viene desde SearchBar
     }
   }, [user, navigate, fetchPieces, setDepartmentFilter]);
 
