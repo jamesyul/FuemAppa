@@ -1,64 +1,160 @@
 // src/components/common/SearchBar.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-//import { FaSearch } from 'react-icons/fa6';
 import { FaMagnifyingGlass } from 'react-icons/fa6';
 import { usePiecesStore } from '../../store/pieces.store';
 import { Piece } from '../../types/piece.types';
+import { useNavigate } from 'react-router-dom';
+
+// Definimos un tipo para los sistemas válidos
+type System = 'VD' | 'EN' | 'CH/AE';
 
 const SearchBar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [step, setStep] = useState(1);
-  const [filters, setFilters] = useState<{ department?: string; system?: string; assembly?: string }>({});
+  const [step, setStep] = useState<'initial' | 'system' | 'subsystem' | 'location' | 'function' | 'visual' | 'symptoms' | 'results' | 'feedback'>('initial');
+  const [initialInput, setInitialInput] = useState<string>('');
+  const [filters, setFilters] = useState<{
+    system?: System; // Usamos el tipo System para limitar los valores
+    subsystem?: string;
+    location?: string;
+    function?: string;
+    symptoms?: string[];
+  }>({});
   const { pieces, setFilter } = usePiecesStore();
   const [results, setResults] = useState<Piece[]>([]);
+  const [feedback, setFeedback] = useState<boolean | null>(null);
+  const navigate = useNavigate();
 
   const openModal = () => setIsOpen(true);
   const closeModal = () => {
     setIsOpen(false);
-    setStep(1);
+    setStep('initial');
+    setInitialInput('');
     setFilters({});
     setResults([]);
+    setFeedback(null);
   };
 
-  const handleNext = (value: string) => {
-    if (step === 1) {
-      setFilters({ ...filters, department: value });
-      setStep(2);
-    } else if (step === 2) {
-      setFilters({ ...filters, system: value });
-      setStep(3);
-    } else if (step === 3) {
-      setFilters({ ...filters, assembly: value });
-      // Filtrar piezas basadas en los filtros
-      const filtered = pieces.filter(piece => {
-        const matchesDepartment = !filters.department || piece.departmentId === filters.department;
-        const matchesSystem = !filters.system || piece.code.startsWith(filters.system.split('-')[0]); // Suponiendo que el código del sistema es la primera parte (por ejemplo, "BR" para BRAKES)
-        const matchesAssembly = !filters.assembly || piece.name.toLowerCase().includes(filters.assembly.toLowerCase());
-        return matchesDepartment && matchesSystem && matchesAssembly;
-      });
-      setResults(filtered);
-      setFilter(JSON.stringify(filters)); // Simula un filtro en el store (ajusta según tu lógica)
-      setStep(1); // Reinicia para una nueva búsqueda
-      closeModal(); // Opcional: cierra el modal después de mostrar resultados
+  // Identificación automática del sistema principal basado en la entrada inicial
+  useEffect(() => {
+    if (initialInput && step === 'initial') {
+      const lowerInput = initialInput.toLowerCase();
+      let suggestedSystem: System | undefined;
+
+      if (lowerInput.includes('frenar') || lowerInput.includes('ruido al frenar') || lowerInput.includes('frenos')) {
+        suggestedSystem = 'VD'; // Vehicle Dynamics (Brakes)
+      } else if (lowerInput.includes('volante') || lowerInput.includes('girar') || lowerInput.includes('dirección')) {
+        suggestedSystem = 'VD'; // Vehicle Dynamics (Steering)
+      } else if (lowerInput.includes('rueda') || lowerInput.includes('suspensión')) {
+        suggestedSystem = 'VD'; // Vehicle Dynamics (Suspension)
+      } else if (lowerInput.includes('motor') || lowerInput.includes('aceite') || lowerInput.includes('tren motriz')) {
+        suggestedSystem = 'EN'; // Engine
+      } else if (lowerInput.includes('chasis') || lowerInput.includes('ala') || lowerInput.includes('aerodinámica')) {
+        suggestedSystem = 'CH/AE'; // Chassis & Aero
+      } else if (lowerInput.includes('eléctrico') || lowerInput.includes('batería') || lowerInput.includes('sensor')) {
+        suggestedSystem = 'EN'; // Electrical (asociado con Engine en el documento)
+      }
+
+      if (suggestedSystem) {
+        setFilters({ ...filters, system: suggestedSystem });
+        setStep('system');
+      }
+    }
+  }, [initialInput, step, filters]);
+
+  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInitialInput(e.target.value);
+    // No avanzamos automáticamente al siguiente paso aquí
+  };
+
+  const handleSubmitInitial = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && initialInput) {
+      const exactMatch = pieces.find(piece => piece.name.toLowerCase() === initialInput.toLowerCase());
+      if (exactMatch) {
+        setResults([exactMatch]);
+        setStep('results');
+      } else {
+        setStep('system'); // Pasar a identificación del sistema si no hay coincidencia exacta
+      }
     }
   };
 
-  const departments = Array.from(new Set(pieces.map(piece => piece.departmentId))).map(deptId => ({
-    id: deptId,
-    name: pieces.find(p => p.departmentId === deptId)?.departmentName || 'Desconocido',
-  }));
+  const handleNext = (value: string) => {
+    switch (step) {
+      case 'system':
+        setFilters({ ...filters, system: value as System }); // Aseguramos que sea un System
+        setStep('subsystem');
+        break;
+      case 'subsystem':
+        setFilters({ ...filters, subsystem: value });
+        setStep('location');
+        break;
+      case 'location':
+        setFilters({ ...filters, location: value });
+        setStep('function');
+        break;
+      case 'function':
+        setFilters({ ...filters, function: value });
+        setStep('visual');
+        break;
+      case 'visual':
+        setStep('symptoms');
+        break;
+      case 'symptoms':
+        setFilters({ ...filters, symptoms: [value] });
+        filterPieces();
+        setStep('results');
+        break;
+      default:
+        break;
+    }
+  };
 
-  const systems = Array.from(new Set(pieces.map(piece => piece.code.split('-')[0]))).map(system => ({
-    id: system,
-    name: system, // Simplificado, puedes mapear a nombres completos (BR -> BRAKES, SU -> SUSPENSION, etc.)
-  }));
+  const filterPieces = () => {
+    const filtered = pieces.filter(piece => {
+      const matchesSystem = !filters.system || piece.departmentId === (filters.system === 'CH/AE' ? 'AE' : filters.system); // Ajuste para CH/AE
+      const matchesSubsystem = !filters.subsystem || piece.code.startsWith(filters.subsystem.split('-')[0]); // Ejemplo: BR para Brakes
+      const matchesLocation = !filters.location || piece.name.toLowerCase().includes(filters.location.toLowerCase().includes('front') ? 'front' : filters.location.toLowerCase());
+      const matchesFunction = !filters.function || piece.name.toLowerCase().includes(filters.function.toLowerCase());
+      const matchesSymptoms = !filters.symptoms || filters.symptoms.some(symptom => {
+        if (symptom.includes('ruido al frenar')) return piece.name.toLowerCase().includes('brake') || piece.name.toLowerCase().includes('calipers');
+        if (symptom.includes('no girar')) return piece.name.toLowerCase().includes('steering');
+        if (symptom.includes('vibraciones en las ruedas')) return piece.name.toLowerCase().includes('wheel') || piece.name.toLowerCase().includes('tire');
+        if (symptom.includes('sobrecalentamiento del motor')) return piece.name.toLowerCase().includes('engine') || piece.name.toLowerCase().includes('cooling');
+        return false;
+      });
+      return matchesSystem && matchesSubsystem && matchesLocation && matchesFunction && matchesSymptoms;
+    });
+    setResults(filtered.slice(0, 1)); // Mostrar solo la pieza más probable (1 resultado)
+  };
 
-  const assemblies = Array.from(new Set(pieces.map(piece => piece.name))).map(assembly => ({
-    id: assembly,
-    name: assembly,
-  }));
+  const handleFeedback = (correct: boolean) => {
+    setFeedback(correct);
+    if (correct && results.length > 0) {
+      // Redirigir a /pieces con el filtro aplicado para mostrar solo la pieza encontrada
+      setFilter(JSON.stringify({ code: results[0].code })); // Ajusta según tu lógica de filtro en pieces.store.ts
+      navigate('/pieces');
+      closeModal();
+    } else if (!correct) {
+      setStep('initial'); // Reiniciar para ajustar la búsqueda
+      setInitialInput('');
+      setFilters({});
+    } else {
+      closeModal();
+    }
+  };
+
+  // Definimos subsystems con type seguro
+  const subsystems: Record<System, string[]> = {
+    VD: ['BR', 'ST', 'SU', 'WT'], // Brakes, Steering, Suspension, Wheels
+    EN: ['EN', 'EL'], // Engine, Electrical
+    'CH/AE': ['FR', 'MS'], // Chassis & Body, Misc
+  };
+
+  const locations = ['Front', 'Rear', 'Left', 'Right', 'Central'];
+  const functions = ['Detiene el vehículo', 'Controla la dirección', 'Absorbe impactos', 'Genera potencia', 'Transmite energía'];
+  const symptoms = ['El carro hace ruido al frenar', 'No puedo girar bien el volante', 'Vibraciones en las ruedas', 'Sobrecalentamiento del motor'];
 
   return (
     <>
@@ -103,58 +199,163 @@ const SearchBar: React.FC = () => {
                     as="h3"
                     className="text-lg font-medium leading-6 text-gray-900 mb-4"
                   >
-                    Buscador de Piezas - Paso {step}
+                    Buscador de Piezas - {step === 'initial' ? 'Inicio' : `Paso ${step}`}
                   </Dialog.Title>
-                  {step === 1 && (
+                  {step === 'initial' && (
                     <div>
-                      <h4 className="text-md font-semibold mb-2">¿De qué departamento es la pieza?</h4>
-                      <select
-                        onChange={(e) => handleNext(e.target.value)}
+                      <h4 className="text-md font-semibold mb-2">¿Qué problema, ubicación, función o pieza buscas?</h4>
+                      <input
+                        type="text"
+                        value={initialInput}
+                        onChange={handleInput}
+                        onKeyPress={handleSubmitInitial}
+                        placeholder="Ej: 'El carro hace ruido al frenar', 'Rueda delantera', 'No giro el volante'"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 mb-2"
-                      >
-                        <option value="">Selecciona un departamento</option>
-                        {departments.map(dept => (
-                          <option key={dept.id} value={dept.id}>{dept.name}</option>
-                        ))}
-                      </select>
+                        aria-label="Entrada inicial para buscar piezas"
+                      />
                     </div>
                   )}
-                  {step === 2 && (
+                  {step === 'system' && (
                     <div>
-                      <h4 className="text-md font-semibold mb-2">¿A qué sistema pertenece?</h4>
+                      <h4 className="text-md font-semibold mb-2">Selecciona el sistema principal:</h4>
                       <select
                         onChange={(e) => handleNext(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 mb-2"
+                        aria-label="Selecciona un sistema"
                       >
                         <option value="">Selecciona un sistema</option>
-                        {systems.map(sys => (
-                          <option key={sys.id} value={sys.id}>{sys.name}</option>
-                        ))}
+                        <option value="VD">Vehicle Dynamics</option>
+                        <option value="EN">Engine</option>
+                        <option value="CH/AE">Chassis & Aero</option>
                       </select>
                     </div>
                   )}
-                  {step === 3 && (
+                  {step === 'subsystem' && (
                     <div>
-                      <h4 className="text-md font-semibold mb-2">¿Qué ensamblaje buscas?</h4>
+                      <h4 className="text-md font-semibold mb-2">Selecciona el subsistema:</h4>
                       <select
                         onChange={(e) => handleNext(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 mb-2"
+                        aria-label="Selecciona un subsistema"
                       >
-                        <option value="">Selecciona un ensamblaje</option>
-                        {assemblies.map(asm => (
-                          <option key={asm.id} value={asm.name}>{asm.name}</option>
+                        <option value="">Selecciona un subsistema</option>
+                        {subsystems[filters.system || 'VD'].map(sub => (
+                          <option key={sub} value={sub}>{sub === 'BR' ? 'Brakes' : sub === 'ST' ? 'Steering' : sub === 'SU' ? 'Suspension' : sub === 'WT' ? 'Wheels' : sub === 'EN' ? 'Engine' : sub === 'EL' ? 'Electrical' : sub === 'FR' ? 'Chassis & Body' : 'Misc'}</option>
                         ))}
                       </select>
                     </div>
                   )}
-                  {results.length > 0 && (
-                    <div className="mt-4">
+                  {step === 'location' && (
+                    <div>
+                      <h4 className="text-md font-semibold mb-2">Selecciona la ubicación:</h4>
+                      <select
+                        onChange={(e) => handleNext(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 mb-2"
+                        aria-label="Selecciona una ubicación"
+                      >
+                        <option value="">Selecciona una ubicación</option>
+                        {locations.map(loc => (
+                          <option key={loc} value={loc.toLowerCase()}>{loc}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  {step === 'function' && (
+                    <div>
+                      <h4 className="text-md font-semibold mb-2">Selecciona la función:</h4>
+                      <select
+                        onChange={(e) => handleNext(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 mb-2"
+                        aria-label="Selecciona una función"
+                      >
+                        <option value="">Selecciona una función</option>
+                        {functions.map(func => (
+                          <option key={func} value={func.toLowerCase()}>{func}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  {step === 'visual' && (
+                    <div>
+                      <h4 className="text-md font-semibold mb-2">Confirma visualmente la ubicación:</h4>
+                      <div className="space-y-4">
+                        <img
+                          src="/car-schematic.png" // Asegúrate de que esta imagen esté en public/ (esquemático del coche)
+                          alt="Esquema del coche"
+                          className="w-full h-auto rounded-md shadow-md"
+                        />
+                        <img
+                          src="/car-real.png" // Asegúrate de que esta imagen esté en public/ (foto real del coche)
+                          alt="Foto real del coche"
+                          className="w-full h-auto rounded-md shadow-md"
+                        />
+                        <button
+                          onClick={() => handleNext('confirmed')}
+                          className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 mt-4"
+                          aria-label="Confirmar ubicación visual"
+                        >
+                          Confirmar
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {step === 'symptoms' && (
+                    <div>
+                      <h4 className="text-md font-semibold mb-2">¿Has notado alguno de estos problemas?</h4>
+                      <select
+                        onChange={(e) => handleNext(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 mb-2"
+                        aria-label="Selecciona un síntoma"
+                      >
+                        <option value="">Selecciona un síntoma</option>
+                        {symptoms.map(sym => (
+                          <option key={sym} value={sym}>{sym}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  {step === 'results' && results.length > 0 && (
+                    <div>
                       <h4 className="text-md font-semibold mb-2">Resultados:</h4>
                       <ul className="list-disc pl-5 text-gray-700">
-                        {results.map(piece => (
-                          <li key={piece.id}>{piece.name} (Código: {piece.code}, Departamento: {piece.departmentName})</li>
+                        {results.map((piece, index) => (
+                          <li key={piece.id} className="mb-2">
+                            {index === 0 ? 'Pieza más probable:' : 'Alternativa:'} {piece.name} (Código: {piece.code}, Departamento: {piece.departmentName ?? 'No especificado'}, Función: {piece.name.includes('Brake') ? 'Detiene el vehículo' : piece.name.includes('Steering') ? 'Controla la dirección' : 'Otra función'})
+                            <p className="text-sm text-gray-500">Descripción: {piece.name} es un componente clave para {(piece.departmentName ?? 'el departamento').toLowerCase()}.</p>
+                          </li>
                         ))}
                       </ul>
+                      <button
+                        onClick={() => setStep('feedback')}
+                        className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 mt-4"
+                        aria-label="Verificar si la pieza es correcta"
+                      >
+                        ¿Es correcta esta pieza?
+                      </button>
+                    </div>
+                  )}
+                  {step === 'feedback' && (
+                    <div>
+                      <h4 className="text-md font-semibold mb-2">¿Era esta la pieza que buscabas?</h4>
+                      <div className="space-y-4">
+                        <button
+                          onClick={() => handleFeedback(true)}
+                          className="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+                          aria-label="Confirmar que la pieza es correcta"
+                        >
+                          Sí
+                        </button>
+                        <button
+                          onClick={() => handleFeedback(false)}
+                          className="w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
+                          aria-label="Indicar que la pieza no es correcta"
+                        >
+                          No
+                        </button>
+                      </div>
+                      {feedback === false && (
+                        <p className="text-sm text-gray-500 mt-4">Proporciona más detalles o reinicia la búsqueda.</p>
+                      )}
                     </div>
                   )}
                 </Dialog.Panel>
