@@ -16,29 +16,29 @@ const Login: React.FC = () => {
 
   const onSubmit = (data: LoginFormData) => {
     // Simulación local para login con email/password (borra esto en producción)
-    if (data.email === 'yul' && data.password === '12345') {
-      login({ id: '1', name: 'yul', role: 'admin' });
-      navigate('/');
-      setErrorMessage(null);
-    } else if (data.email === 'jefe' && data.password === '12345') {
-      login({ id: '2', name: 'Jefe Dept', role: 'jefe_departamento', departmentId: 'd1' }); // Rol jefe_departamento
-      navigate('/');
-      setErrorMessage(null);
-    } else if (data.email === 'integrante' && data.password === '12345') {
-      login({ id: '3', name: 'Integrante', role: 'integrante_departamento', departmentId: 'd1' }); // Rol integrante_departamento
-      navigate('/');
-      setErrorMessage(null);
+    if (data.password === '12345') { // Usamos la misma contraseña para todos
+      if (data.email === 'admin') {
+        login({ id: '1', name: 'Admin', role: 'admin' });
+        navigate('/');
+        setErrorMessage(null);
+      } else if (data.email === 'jefe') {
+        login({ id: '2', name: 'Jefe Dept', role: 'jefe_departamento', departmentId: 'd1' }); // Asignamos departmentId: 'd1' (Vehicle Dynamics)
+        navigate('/');
+        setErrorMessage(null);
+      } else if (data.email === 'integrante') {
+        login({ id: '3', name: 'Integrante', role: 'integrante_departamento', departmentId: 'd1' }); // Asignamos departmentId: 'd1' (Vehicle Dynamics)
+        navigate('/');
+        setErrorMessage(null);
+      } else if (data.email === 'yul') {
+        login({ id: '4', name: 'yul', role: 'admin' }); // Mantén a yul como admin para pruebas
+        navigate('/');
+        setErrorMessage(null);
+      } else {
+        setErrorMessage('Usuario o contraseña incorrectos');
+      }
     } else {
-      setErrorMessage('Usuario o contraseña incorrectos');
+      setErrorMessage('Contraseña incorrecta');
     }
-  };
-
-  // Simulación de login con Google para pruebas locales
-  const handleGoogleLogin = () => {
-    // Simula un usuario autenticado con Google (borra esto en producción)
-    login({ id: '2', name: 'Usuario Google', role: 'integrante_departamento', departmentId: 'd1' }); // Cambiado a un rol válido
-    navigate('/');
-    alert('Inicio de sesión con Google simulado exitoso');
   };
 
   return (
@@ -82,7 +82,11 @@ const Login: React.FC = () => {
         </form>
         <div className="mt-4 text-center">
           <button
-            onClick={handleGoogleLogin}
+            onClick={() => {
+              login({ id: '2', name: 'Usuario Google', role: 'integrante_departamento', departmentId: 'd1' });
+              navigate('/');
+              alert('Inicio de sesión con Google simulado exitoso');
+            }}
             className="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md flex items-center justify-center space-x-2"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -1,3 +1,4 @@
+// src/store/pieces.store.ts
 import { create } from 'zustand';
 
 interface Piece {
@@ -15,7 +16,7 @@ interface PiecesState {
   pieces: Piece[];
   filteredPieces: Piece[];
   fetchPieces: () => void;
-  setFilter: (term: string | { code?: string }) => void; // Actualizamos el tipo para aceptar string o { code: string }
+  setFilter: (term: string | { code?: string }) => void;
   setDepartmentFilter: (departmentId: string) => void;
 }
 
@@ -220,9 +221,9 @@ export const usePiecesStore = create<PiecesState>((set) => ({
           piece.name.toLowerCase().includes(term.toLowerCase()) ||
           (piece.departmentName || '').toLowerCase().includes(term.toLowerCase())
         )
-      : state.pieces.filter(piece => term.code && piece.code === term.code), // Filtra por código si es un objeto
+      : state.pieces.filter(piece => term.code && piece.code === term.code),
   })),
-  setDepartmentFilter: (departmentId) => set((state) => ({
-    filteredPieces: state.pieces.filter(piece => piece.departmentId === departmentId),
+  setDepartmentFilter: (departmentId: string) => set((state) => ({
+    filteredPieces: departmentId ? state.pieces.filter(piece => piece.departmentId === departmentId) : state.pieces,
   })),
 }));

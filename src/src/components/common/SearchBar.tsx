@@ -2,12 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import { FaMagnifyingGlass } from 'react-icons/fa6';
+import { FaMagnifyingGlass } from 'react-icons/fa6'; // Usa fa6 para Font Awesome 6
 import { usePiecesStore } from '../../store/pieces.store';
 import { Piece } from '../../types/piece.types';
 import { useNavigate } from 'react-router-dom';
 
-// Definimos un tipo para los sistemas válidos
 type System = 'VD' | 'EN' | 'CH/AE';
 
 const SearchBar: React.FC = () => {
@@ -15,7 +14,7 @@ const SearchBar: React.FC = () => {
   const [step, setStep] = useState<'initial' | 'system' | 'subsystem' | 'location' | 'function' | 'visual' | 'symptoms' | 'results' | 'feedback'>('initial');
   const [initialInput, setInitialInput] = useState<string>('');
   const [filters, setFilters] = useState<{
-    system?: System; // Usamos el tipo System para limitar los valores
+    system?: System;
     subsystem?: string;
     location?: string;
     function?: string;
@@ -65,7 +64,6 @@ const SearchBar: React.FC = () => {
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInitialInput(e.target.value);
-    // No avanzamos automáticamente al siguiente paso aquí
   };
 
   const handleSubmitInitial = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -83,7 +81,7 @@ const SearchBar: React.FC = () => {
   const handleNext = (value: string) => {
     switch (step) {
       case 'system':
-        setFilters({ ...filters, system: value as System }); // Aseguramos que sea un System
+        setFilters({ ...filters, system: value as System });
         setStep('subsystem');
         break;
       case 'subsystem':
@@ -113,8 +111,8 @@ const SearchBar: React.FC = () => {
 
   const filterPieces = () => {
     const filtered = pieces.filter(piece => {
-      const matchesSystem = !filters.system || piece.departmentId === (filters.system === 'CH/AE' ? 'AE' : filters.system); // Ajuste para CH/AE
-      const matchesSubsystem = !filters.subsystem || piece.code.startsWith(filters.subsystem.split('-')[0]); // Ejemplo: BR para Brakes
+      const matchesSystem = !filters.system || piece.departmentId === (filters.system === 'CH/AE' ? 'AE' : filters.system);
+      const matchesSubsystem = !filters.subsystem || piece.code.startsWith(filters.subsystem.split('-')[0]);
       const matchesLocation = !filters.location || piece.name.toLowerCase().includes(filters.location.toLowerCase().includes('front') ? 'front' : filters.location.toLowerCase());
       const matchesFunction = !filters.function || piece.name.toLowerCase().includes(filters.function.toLowerCase());
       const matchesSymptoms = !filters.symptoms || filters.symptoms.some(symptom => {
@@ -126,18 +124,17 @@ const SearchBar: React.FC = () => {
       });
       return matchesSystem && matchesSubsystem && matchesLocation && matchesFunction && matchesSymptoms;
     });
-    setResults(filtered.slice(0, 1)); // Mostrar solo la pieza más probable (1 resultado)
+    setResults(filtered.slice(0, 1));
   };
 
   const handleFeedback = (correct: boolean) => {
     setFeedback(correct);
     if (correct && results.length > 0) {
-      // Redirigir a /pieces con el filtro aplicado para mostrar solo la pieza encontrada
-      setFilter(JSON.stringify({ code: results[0].code })); // Ajusta según tu lógica de filtro en pieces.store.ts
+      setFilter(JSON.stringify({ code: results[0].code }));
       navigate('/pieces');
       closeModal();
     } else if (!correct) {
-      setStep('initial'); // Reiniciar para ajustar la búsqueda
+      setStep('initial');
       setInitialInput('');
       setFilters({});
     } else {
@@ -145,11 +142,10 @@ const SearchBar: React.FC = () => {
     }
   };
 
-  // Definimos subsystems con type seguro
   const subsystems: Record<System, string[]> = {
-    VD: ['BR', 'ST', 'SU', 'WT'], // Brakes, Steering, Suspension, Wheels
-    EN: ['EN', 'EL'], // Engine, Electrical
-    'CH/AE': ['FR', 'MS'], // Chassis & Body, Misc
+    VD: ['BR', 'ST', 'SU', 'WT'],
+    EN: ['EN', 'EL'],
+    'CH/AE': ['FR', 'MS'],
   };
 
   const locations = ['Front', 'Rear', 'Left', 'Right', 'Central'];
@@ -280,12 +276,12 @@ const SearchBar: React.FC = () => {
                       <h4 className="text-md font-semibold mb-2">Confirma visualmente la ubicación:</h4>
                       <div className="space-y-4">
                         <img
-                          src="/car-schematic.png" // Asegúrate de que esta imagen esté en public/ (esquemático del coche)
+                          src="/car-schematic.png"
                           alt="Esquema del coche"
                           className="w-full h-auto rounded-md shadow-md"
                         />
                         <img
-                          src="/car-real.png" // Asegúrate de que esta imagen esté en public/ (foto real del coche)
+                          src="/car-real.png"
                           alt="Foto real del coche"
                           className="w-full h-auto rounded-md shadow-md"
                         />
@@ -320,8 +316,8 @@ const SearchBar: React.FC = () => {
                       <ul className="list-disc pl-5 text-gray-700">
                         {results.map((piece, index) => (
                           <li key={piece.id} className="mb-2">
-                            {index === 0 ? 'Pieza más probable:' : 'Alternativa:'} {piece.name} (Código: {piece.code}, Departamento: {piece.departmentName ?? 'No especificado'}, Función: {piece.name.includes('Brake') ? 'Detiene el vehículo' : piece.name.includes('Steering') ? 'Controla la dirección' : 'Otra función'})
-                            <p className="text-sm text-gray-500">Descripción: {piece.name} es un componente clave para {(piece.departmentName ?? 'el departamento').toLowerCase()}.</p>
+                            {index === 0 ? 'Pieza más probable:' : 'Alternativa:'} {piece.name} (Código: {piece.code}, Departamento: {piece.departmentName ?? 'Desconocido'}, Función: {piece.name.includes('Brake') ? 'Detiene el vehículo' : piece.name.includes('Steering') ? 'Controla la dirección' : 'Otra función'})
+                            <p className="text-sm text-gray-500">Descripción: {piece.name} es un componente clave para {piece.departmentName?.toLowerCase() || 'desconocido'}.</p>
                           </li>
                         ))}
                       </ul>

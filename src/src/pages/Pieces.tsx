@@ -15,21 +15,14 @@ const Pieces: React.FC = () => {
   const [selectedPiece, setSelectedPiece] = useState<Piece | null>(null);
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false); // Nuevo estado para el emergente de edición
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [editPiece, setEditPiece] = useState<Piece>({
     id: '', code: '', name: '', departmentId: '', quantity: 0, price: 0, report: '',
   });
-  const [imageFile, setImageFile] = useState<File | null>(null);
   const [newPiece, setNewPiece] = useState<Piece>({
-    id: '',
-    code: '',
-    name: '',
-    departmentId: '',
-    quantity: 0,
-    price: 0,
-    report: '',
-    departmentName: ''
+    id: '', code: '', name: '', departmentId: user?.departmentId || '', quantity: 0, price: 0, report: '',
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -38,22 +31,22 @@ const Pieces: React.FC = () => {
     }
     fetchPieces();
 
-    // Filtrar por departamento si es jefe o integrante
+    // Filtrar por departamento si es jefe o integrante, mostrar todas para admin
     if (user.role === 'jefe_departamento' || user.role === 'integrante_departamento') {
       if (user.departmentId) {
-        setDepartmentFilter(user.departmentId);
+        console.log('Filtrando piezas para departmentId:', user.departmentId); // Depuración
+        setDepartmentFilter(user.departmentId); // Filtra solo las piezas del departmentId del usuario
       } else {
         console.error('El usuario no tiene un departamento asignado');
+        setDepartmentFilter('d1'); // Fallback a Vehicle Dynamics si no hay departmentId
       }
+    } else {
+      // Para admin, asegura que se muestren todas las piezas
+      console.log('Mostrando todas las piezas para admin'); // Depuración
+      setDepartmentFilter(''); // Limpia el filtro de departamento para mostrar todo
+      setFilter(''); // Limpia cualquier filtro de búsqueda para mostrar todas las piezas
     }
-
-    // Verificar si hay un filtro aplicado desde SearchBar (por ejemplo, desde la URL o store)
-    const searchParams = new URLSearchParams(window.location.search);
-    const filterCode = searchParams.get('code');
-    if (filterCode) {
-      setFilter({ code: filterCode }); // Aplica el filtro por código si viene desde SearchBar
-    }
-  }, [user, navigate, fetchPieces, setDepartmentFilter]);
+  }, [user, navigate, fetchPieces, setDepartmentFilter, setFilter]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -196,8 +189,8 @@ const Pieces: React.FC = () => {
                                 {({ active }) => (
                                   <button
                                     onClick={() => {
-                                      setEditPiece(piece); // Establece la pieza para editar
-                                      setIsEditOpen(true); // Abre el emergente de edición
+                                      setEditPiece(piece);
+                                      setIsEditOpen(true);
                                     }}
                                     className={`${
                                       active ? 'bg-gray-100' : ''
@@ -212,7 +205,6 @@ const Pieces: React.FC = () => {
                                   <button
                                     onClick={() => {
                                       if (window.confirm('¿Estás seguro de eliminar esta pieza?')) {
-                                        // Lógica para eliminar (simulada aquí, usa axios al backend)
                                         alert(`Eliminar pieza ${piece.code}`);
                                       }
                                     }}
@@ -379,9 +371,10 @@ const Pieces: React.FC = () => {
                         required
                       >
                         <option value="">Selecciona un departamento</option>
-                        <option value="d1">Mecánica</option>
-                        <option value="d2">Electrónica</option>
-                        <option value="d3">Aerodinámica</option>
+                        <option value="VD">Vehicle Dynamics</option>
+                        <option value="EN">Engine</option>
+                        <option value="AE">Aero</option>
+                        <option value="CH">Chassis</option>
                       </select>
                     </div>
                     <div>
@@ -425,7 +418,7 @@ const Pieces: React.FC = () => {
                     </div>
                     <div>
                       <label htmlFor="image" className="block text-sm font-medium text-gray-700">
-                        Imagen de la Pieza
+                        Imagen de la Pieza (opcional)
                       </label>
                       <input
                         type="file"
@@ -534,9 +527,10 @@ const Pieces: React.FC = () => {
                         required
                       >
                         <option value="">Selecciona un departamento</option>
-                        <option value="d1">Mecánica</option>
-                        <option value="d2">Electrónica</option>
-                        <option value="d3">Aerodinámica</option>
+                        <option value="VD">Vehicle Dynamics</option>
+                        <option value="EN">Engine</option>
+                        <option value="AE">Aero</option>
+                        <option value="CH">Chassis</option>
                       </select>
                     </div>
                     <div>
@@ -617,6 +611,3 @@ const Pieces: React.FC = () => {
 };
 
 export default Pieces;
-
-// Asegúrate de importar usePiecesStore correctamente
-const set = usePiecesStore.setState;
